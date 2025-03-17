@@ -124,7 +124,7 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
     const userUsername = username || email.split("@")[0]
 
     try {
-      // 1. Create the auth user with email confirmation disabled for development
+    
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -139,7 +139,18 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
 
       if (error) {
         console.error("Signup error:", error)
-        throw error
+        let errorMessage = "An error occurred during signup";
+        if (error.message.includes("duplicate key value violates unique constraint")) {
+          errorMessage = "Email address already in use. Please use a different email or sign in.";
+        } else if (error.message.includes("Invalid email format")) {
+          errorMessage = "Invalid email format. Please check your email address.";
+        }
+        toast({
+          title: "Signup failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+        throw error;
       }
 
       if (!data.user) {
@@ -273,4 +284,3 @@ export function SupabaseAuthProvider({ children }: { children: React.ReactNode }
 
   return <SupabaseAuthContext.Provider value={value}>{children}</SupabaseAuthContext.Provider>
 }
-
